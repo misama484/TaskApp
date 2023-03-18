@@ -1,0 +1,15 @@
+<DatePicker
+          //modal
+          mode="time"
+          open = {open}
+          date={date}
+          onConfirm = {(date) => {
+            setDate(date);
+            setOpen(false);           
+          }}
+          onCancel = {() => {
+            setOpen(false);
+          }}
+        />
+
+<TouchableOpacity onPress={() => setOpen(true)} >
