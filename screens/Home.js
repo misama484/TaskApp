@@ -7,6 +7,19 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hideCompileReducer, setTodosReducer } from '../redux/todosSlice';
+import * as Notifications from 'expo-notifications';
+import { Constants } from 'expo-constants';
+import moment from 'moment/moment';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => {
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  }
+})
 
 
 

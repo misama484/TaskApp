@@ -30,12 +30,34 @@ const AddTask = () => {
   //Redux
   const dispatch = useDispatch();
 
-  //guartdar todo y anyador a lista
+  //Funciones DateTimePicker
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate;
+    setDate(currentDate);
+  };
+  const showMode = (currentMode) => {
+    DateTimePickerAndroid.open({
+      value: date,
+      onChange,
+      mode: currentMode,
+      is24Hour: true,
+    });
+  };
+  const showDatepicker = () => {
+    showMode('date');
+  };
+  const showTimepicker = () => {
+    showMode('time');
+  };
+
+
+  //guartdar todo y anyadir a lista
+  //para poder marcar tarea como para Tomorrow y que mande notificacion, hay que indicar que se si isToday es false, sume a la nueva fecha(hoy) 24h * 60min/h * 60s/min * 1000(pasar a milisegs)
   const addTodo = async () => {
     const newTodo = {
       id: Math.floor(Math.random() * 1000),
       text: name,
-      hour: date.toString(),
+      hour: isToday ?  date.toString() : new Date(date).getDate() + 24 * 60 * 60 * 1000,
       isToday: isToday,
       isCompleted: false,
     }
@@ -45,8 +67,10 @@ const AddTask = () => {
       await AsyncStorage.setItem("@Todos", JSON.stringify([...listTodos, newTodo]));
       //llamamos al metodo del Slice de Redux creado anteriormente
       dispatch(addTodoReducer(newTodo));
-      //llamamos a la funcion que crea la notificacion
-      scheduleTodoNotification(newTodo);
+      //Si el switch de alert esta activo, cambia el estado de alert a true y desde aqui llamamos a la funcion que crea la notificacion
+      if(alert){
+        scheduleTodoNotification(newTodo);
+      }
       //volvemos a pantalla anterior
       navigation.goBack();
     } catch (e){
@@ -66,6 +90,7 @@ const AddTask = () => {
         },
         trigger,
       });
+      console.log("Notificacion creada");
     } catch (e) {
       alert("La hora de la tarea es anterior a la hora actual");
     }
@@ -85,20 +110,8 @@ const AddTask = () => {
       </View>
       <View style={styles.inputContainer}>
         <Text style={styles.inputTitle}>Hour</Text>
-        <DatePicker
-          //modal
-          mode="time"
-          open = {open}
-          date={date}
-          onConfirm = {(date) => {
-            setDate(date);
-            setOpen(false);           
-          }}
-          onCancel = {() => {
-            setOpen(false);
-          }}
-        />
-        <TouchableOpacity onPress={() => setOpen(true)} >
+        
+        <TouchableOpacity onPress={showTimepicker}>
           <Text>{date.toTimeString()}</Text>
         </TouchableOpacity>
       </View>
