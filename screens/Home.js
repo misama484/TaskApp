@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, Platform, SafeAreaView } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import TodoList from '../components/TodoList'
 import Logo from "../images/LogoMiguelSanchez2.png"
@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hideCompileReducer, setTodosReducer } from '../redux/todosSlice';
 import * as Notifications from 'expo-notifications';
-import { Constants } from 'expo-constants';
+import * as Device from 'expo-device';
 import moment from 'moment/moment';
 
 Notifications.setNotificationHandler({
@@ -16,7 +16,7 @@ Notifications.setNotificationHandler({
     return {
       shouldShowAlert: true,
       shouldPlaySound: true,
-      shouldSetBadge: false,
+      shouldSetBadge: true,
     };
   }
 })
@@ -35,10 +35,13 @@ const Home = () => {
   // );
   //controlamos el boton HideCompleteds
   const [isHidden, setIsHidden] = useState(false);
+  const [expoPushToken, setExpoPushToken] = useState('');
 
   const navigation = useNavigation();
 
   useEffect(() => {
+    //llamamos a la funcion que solicita el permiso de notificaciones, nos devuelve el token para notificaciones, lo guardamos en el estado
+    registerForPushNotificationsAsync().then(token => setExpoPushToken(token));
     //cargamos los datos de AsyncStorage
     const getTodos = async () => {
       try{
@@ -78,8 +81,35 @@ const Home = () => {
   //   setLocalData(localData.filter(todo => !todo.isCompleted));
   };
 
+  const registerForPushNotificationsAsync = async() => {
+    let token;
+    if(Device.isDevice){
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if(existingStatus !== 'granted'){
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if(finalStatus !== 'granted'){
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+      token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log(token);
+    } else { return; }
+    if(Platform.OS === 'android'){
+      Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+    return token;
+  }
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Image
       source={Logo}
       style = {styles.logo}
@@ -96,7 +126,7 @@ const Home = () => {
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("AddTask")}>
         <Text style={styles.plus}>+</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   )
 }
 
@@ -106,7 +136,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 15,
-    paddingTop: 5,
+    paddingTop: 30,
   },
   logo: {
     width: 50,
