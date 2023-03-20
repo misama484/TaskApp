@@ -48,8 +48,23 @@ const Home = () => {
         //accedemos a AsyncStorace, al item con la key @Todos
         const todos = await AsyncStorage.getItem("@Todos");
         if(todos !== null){
-          //si hay todos, los traemos a la app, como estan en JSON los parseamos
-          dispatch(setTodosReducer(JSON.parse(todos)));
+          //eliminar los todos del dia, al cambiar de dia
+          const todosData = JSON.parse(todos);
+          const todosDatafiltered = todosData.filter(todo => {
+            //filtramos los todos, con la funcion de moment que nos permite indicar si la propiedad hour del todo, es de ahora o despues(sameorAfter), pasandole el moemnt actual
+            return moment(new Date(todo.hour)).isSameOrAfter(moment(), 'day');
+          })
+          //si todosDataFiltered es distinto de nulo, actualizamos el localStorage y eliminamos los todos
+          if(todosDatafiltered !== null){
+            await AsyncStorage.setItem("@Todos", JSON.stringify(todosDatafiltered));
+            console.log("todos eliminados")
+            //si hay todos, los traemos a la app, como estan en JSON los parseamos
+            dispatch(setTodosReducer(todosDatafiltered));
+            //dispatch(setTodosReducer(JSON.parse(todos)));
+          }
+          //dispatch(setTodosReducer(JSON.parse(todos)));
+          
+
         }
       } catch (e){
         console.log(e);
@@ -120,9 +135,9 @@ const Home = () => {
           <Text style={styles.hideCompleted}>{isHidden ? "Show Completed" : "Hide Completed"}</Text>
         </TouchableOpacity>
       </View>      
-      <TodoList todosData = { todos.filter(todo => todo.isToday) }/>
+      <TodoList todosData = { todos.filter(todo => moment(new Date(todo.hour)).isSame(moment(), 'day')) }/>
       <Text style = { styles.title }>Tomorrow</Text>
-      <TodoList todosData = { todos.filter(todo => !todo.isToday) }/>
+      <TodoList todosData = { todos.filter(todo => moment(new Date(todo.hour)).isAfter(moment(), 'day')) }/>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("AddTask")}>
         <Text style={styles.plus}>+</Text>
       </TouchableOpacity>

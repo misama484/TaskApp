@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useState} from 'react'
+import React, { useState } from 'react'
 import Checkbox from './Checkbox'
 import moment from 'moment'
 //con la libreria moment, convertimos la fecha en formato hora('LT')
@@ -10,6 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Todo = ({id, text, isCompleted, isToday, hour}) => {  
 
+  //actualiza el checkbox cuando el todo pase de tomorrow a today
+  const [thisTodoIsToday, setThisTodoIsToday] = hour ? useState(moment(new Date(hour)).isSame(moment(), 'day')) : useState(false);
   const [localHour, setLocalHour] = useState(new Date(hour));
   const todos = useSelector(state => state.todos.todos);
   const dispatch = useDispatch();
@@ -34,7 +36,7 @@ const Todo = ({id, text, isCompleted, isToday, hour}) => {
           id={id}
           text={text}
           isCompleted={isCompleted}
-          isToday={isToday}
+          isToday={thisTodoIsToday}
           hour={hour}
         />
         <View>

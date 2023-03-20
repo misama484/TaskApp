@@ -57,7 +57,7 @@ const AddTask = () => {
     const newTodo = {
       id: Math.floor(Math.random() * 1000),
       text: name,
-      hour: isToday ?  date.toString() : new Date(date).getDate() + 24 * 60 * 60 * 1000,
+      hour: isToday ?  date.toISOString() : new Date(date).getTime() + 24 * 60 * 60 * 1000,
       isToday: isToday,
       isCompleted: false,
     }
